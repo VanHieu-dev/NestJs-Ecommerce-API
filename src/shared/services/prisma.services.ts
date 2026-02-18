@@ -7,7 +7,9 @@ import { Pool } from 'pg'
 
 @Injectable()
 export class PrismaService extends PrismaClient {
-  constructor(private configService: ConfigService<ConfigProps, true>) {
+  constructor(
+    private readonly configService: ConfigService<ConfigProps, true>,
+  ) {
     const pool = new Pool({
       connectionString: configService.getOrThrow<string>('dbUrl', {
         infer: true,

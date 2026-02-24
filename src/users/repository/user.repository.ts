@@ -1,7 +1,7 @@
-import { UserResponse } from 'src/auth/auth.dto'
 import { IUserRepository } from './user.repository.interface'
 import { PrismaService } from 'src/shared/services/prisma.services'
 import { Injectable } from '@nestjs/common'
+import { UserResponse } from 'src/shared/types/user.type'
 
 @Injectable()
 export class UserRepository implements IUserRepository {

@@ -1,6 +1,8 @@
-import { UserResponse } from 'src/auth/auth.dto'
+import { UserType } from 'src/auth/auth.dto'
 
 export abstract class IUserRepository {
-  abstract findAll(): Promise<UserResponse[]>
-  abstract findUserById(id: number): Promise<UserResponse | null>
+  abstract findAll(): Promise<Omit<UserType, 'password' | 'totpSecret'>[]>
+  abstract findUserById(
+    id: number,
+  ): Promise<Omit<UserType, 'password' | 'totpSecret'> | null>
 }

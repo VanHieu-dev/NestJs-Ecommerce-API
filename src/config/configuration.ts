@@ -6,5 +6,6 @@ export const configuration = () =>
     adminPassword: process.env.ADMIN_PASSWORD,
     adminEmail: process.env.ADMIN_EMAIL,
     adminPhone: process.env.ADMIN_PHONE_NUMBER,
+    otpExpiresIn: process.env.OTP_EXPIRES_In,
   }) as const
 export type ConfigProps = ReturnType<typeof configuration>

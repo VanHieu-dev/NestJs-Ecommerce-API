@@ -3,7 +3,7 @@ import { Pool } from 'pg'
 import * as dotenv from 'dotenv'
 import { hash } from '../src/utils/password'
 import { PrismaClient } from 'src/generated/prisma/client'
-import { RoleName } from 'src/shared/constant/role.constant'
+import { RoleName } from 'src/shared/constant/constant'
 
 // 1. Load biến môi trường
 dotenv.config()

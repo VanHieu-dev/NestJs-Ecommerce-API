@@ -1,8 +1,19 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common'
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common'
 import { RoleService } from './roles.service'
 import { hash } from 'src/utils/password'
 import { AuthRepository } from './repository/auth.repository'
-import { ICreateUser, RegisterBodyType } from 'src/interface/user.interface'
+import { ICreateUser } from 'src/interface/user.interface'
+import { RegisterBodyType, SendOTPBodyType } from 'src/types/type'
+import { generateOTP } from 'src/utils/generateOTP'
+import { addMilliseconds } from 'date-fns'
+import ms, { StringValue } from 'ms'
+import { TypeOfVerificationCode } from 'src/shared/constant/constant'
+import { EmailService } from 'src/shared/services/email.service'
 
 @Injectable()
 export class AuthService {
@@ -10,11 +21,34 @@ export class AuthService {
     private readonly roleService: RoleService,
     @Inject('AUTH_REPOSITORY')
     private readonly authRepository: AuthRepository,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(body: RegisterBodyType) {
     try {
-      const existingUser = await this.authRepository.findUserByEmail(body.email)
+      const verificationCode = await this.authRepository.verifyOTP(
+        body.email,
+        TypeOfVerificationCode.REGISTER,
+      )
+      if (!verificationCode || verificationCode.code !== body.code) {
+        throw new UnprocessableEntityException([
+          {
+            path: 'Code',
+            message: 'Ma OTP Khong hop le',
+          },
+        ])
+      }
+      if (verificationCode.expiresAt < new Date()) {
+        throw new UnprocessableEntityException([
+          {
+            path: 'Code',
+            message: 'Ma OTP da qua han',
+          },
+        ])
+      }
+      const existingUser = await this.authRepository.findUser({
+        email: body.email,
+      })
       if (existingUser) {
         throw new ConflictException('Email da ton tai')
       }
@@ -33,5 +67,29 @@ export class AuthService {
       console.log('co vao day')
       throw error
     }
+  }
+
+  async sendOTP(body: SendOTPBodyType) {
+    //Dựa vào cái type trong body để biết sẽ làm những gì.
+    //Type là : Register
+    const user = await this.authRepository.findUser({
+      email: body.email,
+    })
+    if (user) {
+      throw new ConflictException('Email da ton tai')
+    }
+
+    const code = generateOTP()
+    await this.emailService.sendOTP({ email: body.email, code })
+    const verificationCode = await this.authRepository.createVerificationCode({
+      email: body.email,
+      code,
+      type: body.type,
+      expiresAt: addMilliseconds(
+        new Date(),
+        ms(process.env.OTP_EXPIRES_IN as StringValue),
+      ),
+    })
+    return verificationCode
   }
 }

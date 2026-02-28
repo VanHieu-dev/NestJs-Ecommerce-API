@@ -1,7 +1,12 @@
 import { ICreateUser } from 'src/interface/user.interface'
-import { UserResponse } from 'src/shared/types/user.type'
+import { UserResponse, VerificationCodeType } from 'src/types/type'
 
 export abstract class IAuthRepository {
   abstract createUser(newUser: ICreateUser): Promise<UserResponse>
-  abstract findUserByEmail(email: string): Promise<UserResponse | null>
+  abstract findUser(
+    uniqueObject: { email: string } | { id: number },
+  ): Promise<UserResponse | null>
+  abstract createVerificationCode(
+    data: Pick<VerificationCodeType, 'email' | 'type' | 'code' | 'expiresAt'>,
+  ): Promise<VerificationCodeType>
 }

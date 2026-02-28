@@ -1,10 +1,7 @@
 import { UserStatus } from 'src/generated/prisma/enums'
+import { TypeOfVerificationCode } from 'src/shared/constant/constant'
 import z from 'zod'
-// export enum UserStatus {
-//   ACTIVE,
-//   INACTIVE,
-//   BLOCKED,
-// }
+
 export const UserSchema = z.object({
   id: z.number(),
   email: z.string(),
@@ -22,6 +19,20 @@ export const UserSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 })
+export const VerificationCodeSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  code: z.string().length(6),
+  type: z.enum([
+    TypeOfVerificationCode.REGISTER,
+    TypeOfVerificationCode.FORGOT_PASSWORD,
+    TypeOfVerificationCode.LOGIN,
+    TypeOfVerificationCode.DISABLE_2FA,
+  ]),
+  expiresAt: z.date(),
+  createdAt: z.date(),
+})
+
 export const RegisterBodySchema = UserSchema.pick({
   email: true,
   name: true,
@@ -30,6 +41,7 @@ export const RegisterBodySchema = UserSchema.pick({
 })
   .extend({
     confirmPassword: z.string(),
+    code: z.string().length(6),
   })
   .strict()
   .superRefine(({ password, confirmPassword }, ctx) => {
@@ -44,4 +56,8 @@ export const RegisterBodySchema = UserSchema.pick({
 export const RegisterResSchema = UserSchema.omit({
   password: true,
   totpSecret: true,
+})
+export const SendOTPBodySchema = VerificationCodeSchema.pick({
+  email: true,
+  type: true,
 })

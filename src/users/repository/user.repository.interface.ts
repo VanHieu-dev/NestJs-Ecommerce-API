@@ -1,4 +1,4 @@
-import { UserType } from 'src/auth/auth.dto'
+import { UserType } from 'src/types/type'
 
 export abstract class IUserRepository {
   abstract findAll(): Promise<Omit<UserType, 'password' | 'totpSecret'>[]>
